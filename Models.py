@@ -76,26 +76,6 @@ class SeasonalModel:
         return np.array([self.month_map[m] for m in months])
 
 
-# Model 4: Precipitation threshold
-# Uses only precipitation. High rain: avg temp on wet days, low: dry days.
-
-class PrecipThreshold:
-    def fit(self, X, y):
-        precip = X[:, 5]
-        self.hi = np.percentile(precip, 70)
-        self.lo = np.percentile(precip, 30)
-        self.wet_mean = y[precip >= self.hi].mean()
-        self.dry_mean = y[precip <= self.lo].mean()
-        self.mid_mean = y.mean()
-        return self
-    def predict(self, X):
-        precip = X[:, 5]
-        out = np.full(len(X), self.mid_mean)
-        out[precip >= self.hi] = self.wet_mean
-        out[precip <= self.lo] = self.dry_mean
-        return out
-
-
 # Model 5: Sunshine threshold
 # Uses only sunshine hours. Sunny: warmer tomorrow. Cloudy: colder.
 
@@ -183,7 +163,6 @@ models = [
     ("Constant (training mean)",       ConstantModel()),
     ("Persistence (today = tomorrow)", PersistenceModel()),
     ("Seasonal (monthly average)",     SeasonalModel()),
-    ("Precip threshold",               PrecipThreshold()),
     ("Sunshine threshold",             SunshineThreshold()),
     ("1-Nearest Neighbour",            NearestNeighbour()),
     ("Naive linear (correlations)",    NaiveLinear()),

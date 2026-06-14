@@ -24,14 +24,13 @@ for name, model in models:
 
 ordered_models = [
     models[0],  # Constant
-    models[5],  # 1-Nearest Neighbour
-    models[3],  # Precip threshold
-    models[4],  # Sunshine threshold
+    models[4],  # 1-Nearest Neighbour
+    models[3],  # Sunshine threshold
     models[2],  # Seasonal
-    models[6],  # Naive linear
+    models[5],  # Naive linear
     models[1],  # Persistence
-    models[7],  # Decision tree
-    models[8],  # Linear regression
+    models[6],  # Decision tree
+    models[7],  # Linear regression
 ]
 
 N_BINS = 5

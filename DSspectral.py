@@ -896,6 +896,27 @@ class DawidSkeneEM:
         }
 
 
+# ------------------------------------------------------------------
+# Manual partition subclass
+# ------------------------------------------------------------------
+
+class ManualPartitionDS(DawidSkeneEM):
+    def __init__(self, group_assignments, **kwargs):
+        super().__init__(**kwargs)
+        self.group_assignments = group_assignments  # dict: worker_name -> group index (0, 1, 2)
+
+    def _partition_workers_into_three_groups(self):
+        groups = [[], [], []]
+
+        for worker_idx, worker_name in enumerate(self.workers_):
+            group_idx = self.group_assignments[worker_name]
+            groups[group_idx].append(worker_idx)
+
+        if any(len(g) == 0 for g in groups):
+            raise ValueError("Each group must contain at least one worker.")
+
+        return [np.array(g, dtype=int) for g in groups]
+
 if __name__ == "__main__":
     annotations = [
         ("q1", "model_a", "A"),
@@ -941,8 +962,29 @@ if __name__ == "__main__":
     print("\nObserved log likelihood:")
     print(model.observed_log_likelihood())
 
-    print("\nEstimated model confusion matrices")
-    print("Orientation: matrix[observed_label, true_label]")
-    for worker, matrix in model.worker_confusion_matrices().items():
-        print(f"\n{worker}")
-        print(matrix)
+     # Manual partition
+    group_assignments = {
+        "Linear regression":              0,
+        "Decision tree":                  1,
+        "Persistence (today = tomorrow)": 2,
+        "Naive linear (correlations)":    0,
+        "1-Nearest Neighbour":            1,
+        "Seasonal (monthly average)":     2,
+        "Sunshine threshold":             0,
+        "Constant (training mean)":       1,
+    }
+
+    manual_model = ManualPartitionDS(
+        group_assignments=group_assignments,
+        init="spectral",
+        class_names=["A", "B", "C"],
+        max_iter=100,
+        tol=1e-6,
+        smoothing=1e-3,
+        random_state=42,
+        verbose=True,
+    )
+    manual_model.fit(annotations)
+
+    print("\nManual partition predictions:")
+    print(manual_model.predict())
